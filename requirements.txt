@@ -1,0 +1,8 @@
+notion-client==2.2.1
+pykrx
+yfinance
+requests
+pandas
+numpy
+matplotlib
+finance-datareader
