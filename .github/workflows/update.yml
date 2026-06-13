@@ -1,0 +1,52 @@
+
+name: SWING Portfolio 자동 업데이트
+ 
+on:
+  schedule:
+    # 평일 장 마감 후 오후 4시 30분 (KST) = UTC 07:30
+    - cron: '30 7 * * 1-5'
+  workflow_dispatch:
+    # 수동 실행 버튼 (GitHub Actions 페이지에서 클릭)
+ 
+jobs:
+  update-portfolio:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+ 
+      - name: Python 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+ 
+      - name: 한글 폰트 설치
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-nanum
+ 
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+ 
+      - name: 포트폴리오 업데이트 실행
+        env:
+          NOTION_API_KEY:    ${{ secrets.NOTION_API_KEY }}
+          GITHUB_TOKEN:      ${{ secrets.GITHUB_TOKEN }}
+          HOLDINGS_DB_ID:    "80eb71748f034149b717a809ce9f8f17"
+          TRADES_DB_ID:      "73a20d0923fc4a82a21c6f382db97719"
+          WATCHLIST_DB_ID:   "6d094ee04d8f40fb9afbdfa8892221fa"
+          PORTFOLIO_PAGE_ID: "37295a5b-2a23-81c4-a48f-c6e7ec4b6eeb"
+          GITHUB_REPO:       "swing32/op"
+          GITHUB_BRANCH:     "main"
+        run: python main.py
+ 
+      - name: 생성된 이미지 커밋
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add images/ || true
+          git diff --staged --quiet || git commit -m "📊 포트폴리오 업데이트 $(date +'%Y-%m-%d %H:%M')"
+          git push || true
